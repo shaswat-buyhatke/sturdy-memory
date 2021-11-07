@@ -214,6 +214,15 @@ app.post('/insert' , async (req,res) => {
     };
 });
 
+app.get('/logout' , (req,res) => {
+    if(typeof(req.session.username) === 'undefined'){
+        return res.status(400).send('Please login first');
+    }
+    console.log(req.session.username);
+    req.session.destroy();
+    return res.status(200).send('Do Revisit us again ^_^ ');
+})
+
 app.post('/delete' , async (req,res) => {
     try{
         if(req.session.username === null){
