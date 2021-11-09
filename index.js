@@ -4,15 +4,14 @@ const session = require('express-session');
 const Filestore = require('session-file-store')(session);
 const mysql = require('mysql');
 const { query } = require('express');
-
 var mySqlConnection = require('./DB_CONNECTION');
-
+var login = require('./login');
 app = express();
 // app.use(cookieParser());
+app.use("/login" , login);
 app.use(express.json());
 app.use(express.urlencoded());
 const MASTERPASSWORD = 'password';
-
 
 // first I want to validate user.
 const dbCheck1 = (username) => { 
@@ -148,8 +147,6 @@ app.post('/login' , async (req,res) => {
         
     }         
 });
-
-
 
 // we can only register normal users, to mark admin we will do it from panel.
 // we can use masterkey to verify admin but then it breaks the whole assumption that it can be comprimised.
