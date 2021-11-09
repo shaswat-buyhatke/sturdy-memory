@@ -4,64 +4,14 @@ const session = require('express-session');
 const Filestore = require('session-file-store')(session);
 const mysql = require('mysql');
 const { query } = require('express');
-var mySqlConnection = require('./DB_CONNECTION');
 var login = require('./login');
+var db_commands = require('./db_commands');
 app = express();
 // app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded());
 const MASTERPASSWORD = 'password';
 
-// first I want to validate user.
-const dbCheck1 = (username) => { 
-    return new Promise((resolve,reject) => {
-        mySqlConnection.query(`SELECT * from user where username = '${username}'` , (e , r , f) =>{
-            if(!e){
-                var obj = Object.assign({} , r[0]);
-                resolve(obj)
-            } 
-            reject({});                                                              
-            
-        })
-    }) 
-};
-
-const dbCheck2 = (username, password) => { 
-    return new Promise((resolve,reject) => {
-        mySqlConnection.query(`SELECT * from user where username = '${username}' and password = '${password}'` , (e , r , f) =>{
-            if(!e){
-                var obj = Object.assign({} , r[0]);
-                resolve(obj)
-            }
-            reject(e);                                                              
-        })
-    }) 
-};
-
-const dbInsert1 = (username , password) => {
-    return new Promise((resolve,reject) => {
-        mySqlConnection.query(`INSERT into user(username , password) values('${username}' , '${password}')` , (e) =>{
-            if(e){
-                reject(e);
-            } 
-            resolve();                                                              
-            
-        })
-    })
-}
-
-// Having integer ids will improve performance as this query would happen a lot ! 
-const dbUpdate1 = (username , info) => {
-    return new Promise((resolve,reject) => {
-        mySqlConnection.query(`UPDATE user set info = (${info}) where username = '${username}''` , (e) =>{
-            if(!e){
-                reject();
-            } 
-            resolve();                                                              
-            
-        })
-    })
-}
 
 
 // app.use(session({secret: "Shh, its a secret!"}));
@@ -158,12 +108,12 @@ app.post('/register' , async (req,res) => {
         return res.status(400).send('Bad Request');
     }
     try{
-        let obj = await dbCheck1(username);
+        let obj = await db_commands.dbCheck1(username);
         if(Object.keys(obj).length !== 0){
             return res.status(400).send('USERNAME TAKEN');
         }
         else {
-            await dbInsert1(username,password);
+            await db_commands.dbInsert1(username,password);
             return res.status(200).send('Registered Successfully :) ');
         }
     }catch(e){
@@ -183,7 +133,7 @@ app.post('/insert' , async (req,res) => {
         if(content === null){
             return res.status(400).send('Content can\'t be empty');
         }
-        await dbUpdate1(req.session.username , content);
+        await db_commands.dbUpdate1(req.session.username , content);
         res.status(200).send('Inserted Successfully :)');
 
     }catch(e){
@@ -209,7 +159,7 @@ app.post('/delete' , async (req,res) => {
         if(req.session.admin_id){
             res.status(400).send('Admins can\'t do this :( ');
         }
-        await dbUpdate1(username , '');
+        await db_commands.dbUpdate1(req.session.username , '');
         res.status(200).send('Deleted Successfully :)');
 
     }catch(e){

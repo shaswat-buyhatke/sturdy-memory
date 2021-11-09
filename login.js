@@ -1,31 +1,7 @@
 const express = require("express");
 let router = express.Router();
-var mySqlConnection = require('./DB_CONNECTION');
+var db_commands = require('./db_commands');
 
-const dbCheck1 = (username) => { 
-    return new Promise((resolve,reject) => {
-        mySqlConnection.query(`SELECT * from user where username = '${username}'` , (e , r , f) =>{
-            if(!e){
-                var obj = Object.assign({} , r[0]);
-                resolve(obj)
-            } 
-            reject({});                                                              
-            
-        })
-    }) 
-};
-
-const dbCheck2 = (username, password) => { 
-    return new Promise((resolve,reject) => {
-        mySqlConnection.query(`SELECT * from user where username = '${username}' and password = '${password}'` , (e , r , f) =>{
-            if(!e){
-                var obj = Object.assign({} , r[0]);
-                resolve(obj)
-            }
-            reject(e);                                                              
-        })
-    }) 
-};
 
 router.post('/' , async (req,res) => {
     try {
@@ -57,13 +33,13 @@ router.post('/' , async (req,res) => {
             return res.status(200).send(`SUCCESSFULLY LOGGED IN. Welcome ${admin_mode ? 'ADMIN' : 'USER'}`); 
         }
                 
-        const userData = await dbCheck2(username, password);
+        const userData = await db_commands.dbCheck2(username, password); 
         if(Object.keys(userData).length === 0){
             return res.status(400).send('WRONG USERNAME OR PASSWORD');
         }
         let adminData = {};
         if(admin_mode){ 
-            adminData = await dbCheck2(admin_id, admin_password);
+            adminData = await db_commands.dbCheck2(admin_id, admin_password);
             if(Object.keys(adminData).length === 0 || key !== MASTERPASSWORD){
                 return res.status(400).send('WRONG ADMIN USERNAME , PASSWORD OR MASTERPASSWORD');
             }
