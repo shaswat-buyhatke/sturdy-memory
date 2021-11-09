@@ -1,28 +1,14 @@
 const express = require('express');
 const session = require('express-session');
-var cookieParser = require('cookie-parser');
+// var cookieParser = require('cookie-parser');
 const Filestore = require('session-file-store')(session);
 const mysql = require('mysql');
 const { query } = require('express');
 
-var mySqlConnection = mysql.createConnection({
-    host : 'localhost',
-    user : 'root',
-    password : 'password',
-    database : 'db',
-    multipleStatements : true
-});
-
-mySqlConnection.connect((err) => {
-    if(!err){
-        console.log('Connected');
-    }else{
-        console.log(err);
-    }
-});
+var mySqlConnection = require('./DB_CONNECTION');
 
 app = express();
-app.use(cookieParser());
+// app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded());
 const MASTERPASSWORD = 'password';
@@ -88,29 +74,26 @@ app.use(session({
     resave : true,
     saveUninitialized : true,
     secret : 's;kdng;lsk4056s|}dng3209@32580932', 
-    store  : new Filestore(fo),
+    store  : new Filestore(fo), 
     cookie : {
         maxAge: 1000 * 60 * 60 * 24 * 10,
         sameSite : true,
-        path : '/'
     } 
 }))
 
-app.use(cookieParser());
-
 app.get('/' , (req,res) => {
-    req.session.cookie_recieved = 1;
+    // req.session.cookie_recieved = 1;
     return res.status(200).send('WELCOME ^_^ ');
 })
 
 app.post('/login' , async (req,res) => {
     try {
-        if(typeof(req.session.cookie_recieved) == "undefined"){
-            return res.status(500).send('Please go to home route first');
-        }
-        console.log(req.body);
-        let username = req.body.username;
-        let password = req.body.password;
+        console.log(req.session.id);
+        // if(typeof(req.session.cookie_recieved) == "undefined"){
+        //     return res.status(500).send('Please go to home route first');
+        // }
+        // console.log(req.session.);
+        let {username , password} = req.body; 
         let admin_id = req.body.admin_id ? req.body.admin_id : '';
 
         let admin_password = req.body.admin_password ? req.body.admin_password : '';
@@ -144,7 +127,6 @@ app.post('/login' , async (req,res) => {
                 return res.status(400).send('WRONG ADMIN USERNAME , PASSWORD OR MASTERPASSWORD');
             }
         }
-        console.log('JUST WTF HAPPENED ? ');
         // write the code to set values in session 
         req.session.username = username;
         req.session.admin_id = admin_id;
